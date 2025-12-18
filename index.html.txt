@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>井字棋遊戲</title>
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(120deg, #f0f4f8, #cce0ff);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  h1 { color: #333; text-shadow: 1px 1px #fff; }
+  .player-inputs { margin-bottom: 20px; display: flex; gap: 10px; }
+  input { padding: 5px; font-size: 1em; }
+  button { padding: 5px 10px; font-size: 1em; cursor: pointer; }
+  .board { display: grid; grid-template-columns: repeat(3, 80px); grid-gap: 5px; }
+  .cell {
+    width: 80px; height: 80px;
+    background-color: #fff; border-radius: 10px;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 2em; cursor: pointer;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    transition: background 0.2s;
+  }
+  .cell:hover { background-color: #e0f7fa; }
+  .status { margin-top: 15px; font-size: 1.2em; color: #333; }
+  .scoreboard { margin-top: 15px; font-size: 1em; }
+</style>
+</head>
+<body>
+
+<h1>井字棋大戰</h1>
+
+<div class="player-inputs">
+  <input type="text" id="playerX" placeholder="玩家 X 名稱" value="玩家 X">
+  <input type="text" id="playerO" placeholder="玩家 O 名稱" value="玩家 O">
+  <button id="startBtn">開始遊戲</button>
+</div>
+
+<div class="board" id="board"></div>
+
+<div class="status" id="status">請輸入玩家名稱並開始遊戲</div>
+<div class="scoreboard" id="scoreboard">X: 0 | O: 0</div>
+
+<script>
+const boardEl = document.getElementById('board');
+const statusEl = document.getElementById('status');
+const scoreboardEl = document.getElementById('scoreboard');
+const playerXInput = document.getElementById('playerX');
+const playerOInput = document.getElementById('playerO');
+const startBtn = document.getElementById('startBtn');
+
+let board = Array(9).fill(null);
+let currentPlayer = 'X';
+let scores = { X: 0, O: 0 };
+let gameActive = false;
+
+function renderBoard() {
+  boardEl.innerHTML = '';
+  board.forEach((cell, idx) => {
+    const div = document.createElement('div');
+    div.className = 'cell';
+    div.textContent = cell || '';
+    div.addEventListener('click', () => handleMove(idx));
+    boardEl.appendChild(div);
+  });
+}
+
+function handleMove(idx) {
+  if (!gameActive || board[idx]) return;
+
+  board[idx] = currentPlayer;
+  renderBoard();
+
+  if (checkWinner()) {
+    statusEl.textContent = `${currentPlayer === 'X' ? playerXInput.value : playerOInput.value} 勝利!`;
+    scores[currentPlayer]++;
+    updateScore();
+    gameActive = false;
+    return;
+  }
+
+  if (!board.includes(null)) {
+    statusEl.textContent = '平手!';
+    gameActive = false;
+    return;
+  }
+
+  // 切換玩家
+  currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+  statusEl.textContent = `${currentPlayer === 'X' ? playerXInput.value : playerOInput.value} 的回合`;
+}
+
+function checkWinner() {
+  const winCombos = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+  return winCombos.some(combo => 
+    combo.every(idx => board[idx] === currentPlayer)
+  );
+}
+
+function updateScore() {
+  scoreboardEl.textContent = `${playerXInput.value}: ${scores.X} | ${playerOInput.value}: ${scores.O}`;
+}
+
+function resetGame() {
+  board.fill(null);
+  currentPlayer = 'X';
+  gameActive = true;
+  statusEl.textContent = `${playerXInput.value} 的回合`;
+  renderBoard();
+}
+
+startBtn.addEventListener('click', resetGame);
+
+// 初始渲染
+renderBoard();
+</script>
+
+</body>
+</html>
